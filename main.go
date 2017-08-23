@@ -24,7 +24,6 @@ import (
 	"github.com/golang/glog"
 	"github.com/kelemetry/beacon/resource"
 
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -41,7 +40,8 @@ type ResourceKind interface {
 	GetKind() string
 	GetName(obj interface{}) string
 	GetStatus(obj interface{}) interface{}
-	MakeRuntimeObject(meta meta_v1.ObjectMeta) runtime.Object
+	NewListWatchFromClient(clientset *kubernetes.Clientset, namespace string, flds fields.Selector) *cache.ListWatch
+	MakeRuntimeObject() runtime.Object
 	MakeWarmUpRuntimeObject() runtime.Object
 }
 
@@ -73,6 +73,8 @@ func main() {
 	var rk ResourceKind
 	if kind == "pods" {
 		rk = resource.PodResourceKind{}
+	} else if kind == "ingresses" {
+		rk = resource.IngressResourceKind{}
 	} else {
 		rk = resource.ServiceResourceKind{}
 	}
@@ -89,7 +91,8 @@ func main() {
 	}
 
 	// create the pod watcher
-	listWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), rk.GetKind(), namespace, fields.Everything())
+	//listWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), rk.GetKind(), namespace, fields.Everything())
+	listWatcher := rk.NewListWatchFromClient(clientset, namespace, fields.Everything())
 
 	// create the workqueue
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
@@ -98,7 +101,7 @@ func main() {
 	// whenever the cache is updated, the pod key is added to the workqueue.
 	// Note that when we finally process the item from the workqueue, we might see a newer version
 	// of the Pod than the version which was responsible for triggering the update.
-	indexer, informer := cache.NewIndexerInformer(listWatcher, rk.MakeRuntimeObject(meta_v1.ObjectMeta{}), 0, cache.ResourceEventHandlerFuncs{
+	indexer, informer := cache.NewIndexerInformer(listWatcher, rk.MakeRuntimeObject(), 0, cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
 			if err == nil {
