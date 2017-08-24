@@ -17,15 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"flag"
 
 	"github.com/golang/glog"
 	"github.com/kelemetry/beacon/resource"
 
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/cache"
@@ -33,28 +30,15 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-// type ResourceKind struct {
-// 	Kind string
-// }
-type ResourceKind interface {
-	GetKind() string
-	GetName(obj interface{}) string
-	GetStatus(obj interface{}) interface{}
-	NewListWatchFromClient(clientset *kubernetes.Clientset, namespace string, flds fields.Selector) *cache.ListWatch
-	MakeRuntimeObject() runtime.Object
-	MakeWarmUpRuntimeObject() runtime.Object
-}
-
-func (c *Controller) PrettyJson(data interface{}) (string, error) {
-	buffer := new(bytes.Buffer)
-	encoder := json.NewEncoder(buffer)
-	encoder.SetIndent("", "  ")
-
-	err := encoder.Encode(data)
-	if err != nil {
-		return "", err
+func GetResourceKindByName(kind string) resource.ResourceKind {
+	if kind == "pods" || kind == "pod" {
+		return resource.PodResourceKind{}
+	} else if kind == "ingresses" || kind == "ing" || kind == "ingress" {
+		return resource.IngressResourceKind{}
+	} else { // default service
+		return resource.ServiceResourceKind{}
 	}
-	return buffer.String(), nil
+
 }
 
 func main() {
@@ -69,15 +53,8 @@ func main() {
 	flag.StringVar(&kind, "kind", "pods", "kind")
 
 	flag.Parse()
-	//rk := ResourceKind{Kind: kind}
-	var rk ResourceKind
-	if kind == "pods" {
-		rk = resource.PodResourceKind{}
-	} else if kind == "ingresses" {
-		rk = resource.IngressResourceKind{}
-	} else {
-		rk = resource.ServiceResourceKind{}
-	}
+
+	rk := GetResourceKindByName(kind)
 	// creates the connection
 	config, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
 	if err != nil {
@@ -124,7 +101,7 @@ func main() {
 		},
 	}, cache.Indexers{})
 
-	controller := NewController(queue, indexer, informer, rk.(ResourceKind))
+	controller := NewController(queue, indexer, informer, rk.(resource.ResourceKind))
 
 	// We can now warm up the cache for initial synchronization.
 	// Let's suppose that we knew about a pod "mypod" on our last run, therefore add it to the cache.

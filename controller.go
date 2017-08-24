@@ -17,10 +17,13 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/kelemetry/beacon/resource"
 
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -33,16 +36,27 @@ type Controller struct {
 	indexer  cache.Indexer
 	queue    workqueue.RateLimitingInterface
 	informer cache.Controller
-	rk       ResourceKind
+	rk       resource.ResourceKind
 }
 
-func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer, informer cache.Controller, rk ResourceKind) *Controller {
+func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer, informer cache.Controller, rk resource.ResourceKind) *Controller {
 	return &Controller{
 		informer: informer,
 		indexer:  indexer,
 		queue:    queue,
 		rk:       rk,
 	}
+}
+func (c *Controller) PrettyJson(data interface{}) (string, error) {
+	buffer := new(bytes.Buffer)
+	encoder := json.NewEncoder(buffer)
+	encoder.SetIndent("", "  ")
+
+	err := encoder.Encode(data)
+	if err != nil {
+		return "", err
+	}
+	return buffer.String(), nil
 }
 
 func (c *Controller) processNextItem() bool {
