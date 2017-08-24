@@ -1,6 +1,6 @@
 # Beacon
 
-Beacon is a monitoring cli or incluster controller that will broadcast changes to a selected resource type
+Beacon is a monitoring cli out-of-clouster or in-cluster controller that will broadcast changes to a selected resource type
 
 ## Running
 
@@ -11,10 +11,8 @@ go run *.go -kubeconfig=$HOME/.kube/config -logtostderr=true -kind=pods -namespa
 
 ## Current Status
 ### Supported Resoures
-#### Pods
+-kind=ingresses
 -kind=pods
-
-#### Services
 -kind=services
 
 ## Roadmap
