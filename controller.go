@@ -23,7 +23,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kelemetry/beacon/resource"
+	"github.com/kelemetry/beacon/api/resource"
+	"github.com/kelemetry/beacon/api/transport"
 
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -37,14 +38,16 @@ type Controller struct {
 	queue    workqueue.RateLimitingInterface
 	informer cache.Controller
 	rk       resource.ResourceKind
+	t        transport.Transport
 }
 
-func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer, informer cache.Controller, rk resource.ResourceKind) *Controller {
+func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer, informer cache.Controller, rk resource.ResourceKind, transport transport.Transport) *Controller {
 	return &Controller{
 		informer: informer,
 		indexer:  indexer,
 		queue:    queue,
 		rk:       rk,
+		t:        transport,
 	}
 }
 func (c *Controller) PrettyJson(data interface{}) (string, error) {

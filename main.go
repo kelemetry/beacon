@@ -20,7 +20,8 @@ import (
 	"flag"
 
 	"github.com/golang/glog"
-	"github.com/kelemetry/beacon/resource"
+	"github.com/kelemetry/beacon/api/resource"
+	"github.com/kelemetry/beacon/api/transport"
 
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -31,14 +32,18 @@ import (
 )
 
 func GetResourceKindByName(kind string) resource.ResourceKind {
-	if kind == "pods" || kind == "pod" {
+	if kind == "deployments" || kind == "deployment" {
+		return resource.PodResourceKind{}
+	} else if kind == "pods" || kind == "pod" {
 		return resource.PodResourceKind{}
 	} else if kind == "ingresses" || kind == "ing" || kind == "ingress" {
 		return resource.IngressResourceKind{}
-	} else { // default service
-		return resource.ServiceResourceKind{}
 	}
-
+	// default service
+	return resource.ServiceResourceKind{}
+}
+func GetTransportByName(name string) transport.Transport {
+	return transport.StdoutTransport{}
 }
 
 func main() {
@@ -55,6 +60,9 @@ func main() {
 	flag.Parse()
 
 	rk := GetResourceKindByName(kind)
+
+	trans := GetTransportByName("stdout")
+
 	// creates the connection
 	config, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
 	if err != nil {
@@ -101,7 +109,7 @@ func main() {
 		},
 	}, cache.Indexers{})
 
-	controller := NewController(queue, indexer, informer, rk.(resource.ResourceKind))
+	controller := NewController(queue, indexer, informer, rk.(resource.ResourceKind), trans.(transport.Transport))
 
 	// We can now warm up the cache for initial synchronization.
 	// Let's suppose that we knew about a pod "mypod" on our last run, therefore add it to the cache.
