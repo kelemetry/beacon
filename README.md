@@ -1,6 +1,8 @@
-#kelemetry
+# kelemetry
   ke·lem·e·try
+
   kəˈlemətrē
+
 # Beacon
 
 Beacon is a monitoring cli out-of-clouster or in-cluster controller that will broadcast changes to a selected resource type
