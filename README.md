@@ -11,6 +11,9 @@ A beacon is a combination of a Kubernetes resource, a Transport method and a Sig
 
 For instance you can set up a beacon to listen to changes to Pod resoures and then using the Stdout transport, send a signal that is just the name.
 
+## Status
+
+This code is in alpha and is under active development.
 
 ## Running
 
