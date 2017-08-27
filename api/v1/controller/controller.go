@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package controller
 
 import (
 	"bytes"
@@ -23,12 +23,11 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/kelemetry/beacon/api/resource"
-	"github.com/kelemetry/beacon/api/transport"
+	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/transport"
 
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -41,7 +40,11 @@ type Controller struct {
 	t        transport.Transport
 }
 
-func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer, informer cache.Controller, rk resource.ResourceKind, transport transport.Transport) *Controller {
+func NewController(queue workqueue.RateLimitingInterface,
+	indexer cache.Indexer,
+	informer cache.Controller,
+	rk resource.ResourceKind,
+	transport transport.Transport) *Controller {
 	return &Controller{
 		informer: informer,
 		indexer:  indexer,
@@ -50,6 +53,11 @@ func NewController(queue workqueue.RateLimitingInterface, indexer cache.Indexer,
 		t:        transport,
 	}
 }
+
+func (c *Controller) SetTransport(trans transport.Transport) {
+	c.t = trans
+}
+
 func (c *Controller) PrettyJson(data interface{}) (string, error) {
 	buffer := new(bytes.Buffer)
 	encoder := json.NewEncoder(buffer)
@@ -74,30 +82,31 @@ func (c *Controller) processNextItem() bool {
 	defer c.queue.Done(key)
 
 	// Invoke the method containing the business logic
-	err := c.syncToStdout(key.(string))
+	err := c.SyncToStdout(key.(string))
 	// Handle the error if something went wrong during the execution of the business logic
 	c.handleErr(err, key)
 	return true
 }
 
-// syncToStdout is the business logic of the controller. In this controller it simply prints
+// SyncToStdout is the business logic of the controller. In this controller it simply prints
 // information about the pod to stdout. In case an error happened, it has to simply return the error.
 // The retry logic should not be part of the business logic.
-func (c *Controller) syncToStdout(key string) error {
+func (c *Controller) SyncToStdout(key string) error {
 	obj, exists, err := c.indexer.GetByKey(key)
 	if err != nil {
 		glog.Errorf("Fetching object with key %s from store failed with %v", key, err)
 		return err
 	}
-
 	if !exists {
 		// Below we will warm up our cache with a Pod, so that we will see a delete for one pod
-		fmt.Printf("Pod %s does not exist anymore\n", key)
+		c.t.BroadcastDelete(key, c.rk)
+		//fmt.Printf("Pod %s does not exist anymore\n", key)
 	} else {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Pod was recreated with the same name
-		stat, _ := c.PrettyJson(c.rk.GetStatus(obj))
-		fmt.Printf("Sync/Add/Update for Pod %s\n%v\n", c.rk.GetName(obj), stat)
+		c.t.BroadcastSync(obj, c.rk)
+		// stat, _ := c.PrettyJson(c.rk.GetStatus(obj))
+		// fmt.Printf("Sync/Add/Update for Pod %s\n%v\n", c.rk.GetName(obj), stat)
 	}
 	return nil
 }

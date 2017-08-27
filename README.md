@@ -16,7 +16,7 @@ For instance you can set up a beacon to listen to changes to Pod resoures and th
 
 ```
 # if outside of the cluster
-go run *.go -kubeconfig=$HOME/.kube/config -logtostderr=true -kind=pods -namespace=default
+go run *.go -kubeconfig=$HOME/.kube/config -logtostderr=true -kind=pods -transport=nats -namespace=default
 ```
 
 ## Current Status

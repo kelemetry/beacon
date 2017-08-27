@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright 2017 The Kelemetry Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import (
 	"flag"
 
 	"github.com/golang/glog"
-	"github.com/kelemetry/beacon/api/resource"
-	"github.com/kelemetry/beacon/api/transport"
+	"github.com/kelemetry/beacon/api/v1/controller"
+	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/transport"
 
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -32,18 +33,21 @@ import (
 )
 
 func GetResourceKindByName(kind string) resource.ResourceKind {
-	if kind == "deployments" || kind == "deployment" {
+	if kind == "deployments" || kind == "deployment" || kind == "deploy" || kind == "de" {
 		return resource.PodResourceKind{}
-	} else if kind == "pods" || kind == "pod" {
+	} else if kind == "pods" || kind == "pod" || kind == "po" {
 		return resource.PodResourceKind{}
-	} else if kind == "ingresses" || kind == "ing" || kind == "ingress" {
+	} else if kind == "ingresses" || kind == "ing" || kind == "ingress" || kind == "in" {
 		return resource.IngressResourceKind{}
 	}
 	// default service
 	return resource.ServiceResourceKind{}
 }
 func GetTransportByName(name string) transport.Transport {
-	return transport.StdoutTransport{}
+	if name == "nats" {
+		return &transport.NATSTransport{}
+	}
+	return &transport.StdoutTransport{}
 }
 
 func main() {
@@ -51,18 +55,28 @@ func main() {
 	var master string
 	var namespace string
 	var kind string
+	var transportName string
+	var configFileName string
 
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "absolute path to the kubeconfig file")
 	flag.StringVar(&master, "master", "", "master url")
 	flag.StringVar(&namespace, "namespace", "develop", "namespace")
 	flag.StringVar(&kind, "kind", "pods", "kind")
+	flag.StringVar(&transportName, "transport", "", "transport")
+	flag.StringVar(&configFileName, "config", "", "Link to transport config file")
 
 	flag.Parse()
 
 	rk := GetResourceKindByName(kind)
 
-	trans := GetTransportByName("stdout")
-
+	trans := GetTransportByName(transportName)
+	defer trans.Close()
+	err := trans.Initialize()
+	if err != nil {
+		panic("could not initialize transport")
+	}
+	// trans.(transport.NATSTransport).Conn.Publish("kelemetry/beacon", []byte("startup"))
+	// trans.(transport.NATSTransport).Conn.Flush()
 	// creates the connection
 	config, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
 	if err != nil {
@@ -109,7 +123,8 @@ func main() {
 		},
 	}, cache.Indexers{})
 
-	controller := NewController(queue, indexer, informer, rk.(resource.ResourceKind), trans.(transport.Transport))
+	controller := controller.NewController(queue, indexer, informer, rk.(resource.ResourceKind), trans.(transport.Transport))
+	//controller.SetTransport(trans)
 
 	// We can now warm up the cache for initial synchronization.
 	// Let's suppose that we knew about a pod "mypod" on our last run, therefore add it to the cache.

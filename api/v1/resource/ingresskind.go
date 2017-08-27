@@ -18,7 +18,8 @@ func (rk IngressResourceKind) GetKind() string {
 }
 
 func (rk IngressResourceKind) GetName(obj interface{}) string {
-	return obj.(*v1beta1.Ingress).GetName()
+
+	return obj.(*v1beta1.Ingress).GetNamespace() + "/" + obj.(*v1beta1.Ingress).GetName()
 }
 
 func (rk IngressResourceKind) GetStatus(obj interface{}) interface{} {
