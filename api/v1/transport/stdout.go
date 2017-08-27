@@ -22,9 +22,11 @@ import (
 	"fmt"
 
 	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/signal"
 )
 
 type StdoutTransport struct {
+	Signal signal.SignalInterface
 }
 
 func (s StdoutTransport) Initialize() error {
@@ -53,4 +55,8 @@ func (s StdoutTransport) PrettyJson(data interface{}) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+func (s *StdoutTransport) SetSignal(signal signal.SignalInterface) {
+	s.Signal = signal
 }

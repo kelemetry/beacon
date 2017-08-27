@@ -22,6 +22,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/kelemetry/beacon/api/v1/controller"
 	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/signal"
 	"github.com/kelemetry/beacon/api/v1/transport"
 
 	"k8s.io/apimachinery/pkg/fields"
@@ -74,6 +75,7 @@ func main() {
 	if err != nil {
 		panic("could not initialize transport")
 	}
+	trans.SetSignal(&signal.StatusSignal{})
 
 	config, err := clientcmd.BuildConfigFromFlags(master, kubeconfig)
 	if err != nil {
@@ -93,7 +95,6 @@ func main() {
 		workqueue.DefaultControllerRateLimiter(),
 		rk.(resource.ResourceKind),
 		trans.(transport.Transport))
-	//controller.SetTransport(trans)
 
 	// We can now warm up the cache for initial synchronization.
 	// Let's suppose that we knew about a pod "mypod" on our last run, therefore add it to the cache.
