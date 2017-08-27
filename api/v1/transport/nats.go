@@ -24,12 +24,14 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/signal"
 	nats "github.com/nats-io/go-nats"
 )
 
 type NATSTransport struct {
 	Servers string
 	Conn    *nats.Conn
+	Signal  signal.SignalInterface
 }
 
 func (s *NATSTransport) Initialize() error {
@@ -55,7 +57,8 @@ func (s *NATSTransport) BroadcastDelete(key string, rk resource.ResourceKind) {
 		glog.Error("Connection closed")
 	}
 	subj := "kelemetry/beacon"
-	msg := fmt.Sprintf("NATS Resource (%s) %s does not exist anymore\n", rk.GetKind(), key)
+	//msg := fmt.Sprintf("NATS Resource (%s) %s does not exist anymore\n", rk.GetKind(), key)
+	msg := s.Signal.SignalDelete(key, rk)
 
 	s.Conn.Publish(subj, []byte(msg))
 	s.Conn.Flush()
@@ -87,4 +90,8 @@ func (s *NATSTransport) PrettyJson(data interface{}) (string, error) {
 		return "", err
 	}
 	return buffer.String(), nil
+}
+
+func (s *NATSTransport) SetSignal(signal signal.SignalInterface) {
+	s.Signal = signal
 }

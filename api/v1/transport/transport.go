@@ -18,6 +18,7 @@ package transport
 
 import (
 	"github.com/kelemetry/beacon/api/v1/resource"
+	"github.com/kelemetry/beacon/api/v1/signal"
 )
 
 type Transport interface {
@@ -25,4 +26,5 @@ type Transport interface {
 	BroadcastDelete(key string, rk resource.ResourceKind)
 	BroadcastSync(obj interface{}, rk resource.ResourceKind)
 	Close()
+	SetSignal(signal.SignalInterface)
 }
