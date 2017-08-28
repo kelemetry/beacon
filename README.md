@@ -1,5 +1,7 @@
 # Beacon
 
+[![Join the chat at https://gitter.im/kelemetry/beacon](https://badges.gitter.im/kelemetry/beacon.svg)](https://gitter.im/kelemetry/beacon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This code is in alpha and is under active development.
 
 Beacon is a monitoring cli out-of-clouster or in-cluster controller that will broadcast changes to a selected resource type
