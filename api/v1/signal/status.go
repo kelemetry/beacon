@@ -10,7 +10,7 @@ import (
 
 type SignalInterface interface {
 	SignalDelete(key string, rk resource.ResourceKind) string
-	SignalSync(obj interface{}, rk resource.ResourceKind) string
+	SignalSync(key string, obj interface{}, rk resource.ResourceKind) string
 }
 
 type StatusSignal struct{}
@@ -19,10 +19,10 @@ func (s *StatusSignal) SignalDelete(key string, rk resource.ResourceKind) string
 	return fmt.Sprintf("NATS Resource (%s) %s does not exist anymore\n", rk.GetKind(), key)
 }
 
-func (s *StatusSignal) SignalSync(obj interface{}, rk resource.ResourceKind) string {
+func (s *StatusSignal) SignalSync(key string, obj interface{}, rk resource.ResourceKind) string {
 	stat, _ := s.PrettyJson(rk.GetStatus(obj))
 
-	return fmt.Sprintf("NATS Sync/Add/Update for Resource (%s) %s\n%v\n", rk.GetKind(), rk.GetName(obj), stat)
+	return fmt.Sprintf("NATS Sync/Add/Update for Resource (%s) %s\n%v\n", rk.GetKind(), key, stat)
 }
 
 func (s *StatusSignal) PrettyJson(data interface{}) (string, error) {

@@ -39,7 +39,7 @@ func (s StdoutTransport) BroadcastDelete(key string, rk resource.ResourceKind) {
 	fmt.Printf("Resource (%s) %s does not exist anymore\n", rk.GetKind(), key)
 }
 
-func (s StdoutTransport) BroadcastSync(obj interface{}, rk resource.ResourceKind) {
+func (s StdoutTransport) BroadcastSync(key string, obj interface{}, rk resource.ResourceKind) {
 	stat, _ := s.PrettyJson(rk.GetStatus(obj))
 	fmt.Printf("Sync/Add/Update for Resource (%s) %s\n%v\n", rk.GetKind(), rk.GetName(obj), stat)
 

@@ -37,6 +37,13 @@ For instance you can set up a beacon to listen to changes to Pod resoures and th
 go run *.go -kubeconfig=$HOME/.kube/config -logtostderr=true -kind=pods -transport=nats -namespace=default
 ```
 
+## Questions
+
+For questions and support please use the [Gitter chat room](https://gitter.im/https://gitter.im/kelemetry/beacon).
+
+[![Join the chat at https://gitter.im/https://gitter.im/kelemetry/beacon](https://badges.gitter.im/https://gitter.im/kelemetry/beacon.svg)](https://gitter.im/https://gitter.im/kelemetry/beacon?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+
 ## Roadmap
    1. Add Complete set of Resources
    2. Add multiple transports

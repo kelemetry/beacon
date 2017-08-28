@@ -71,10 +71,11 @@ func (s *NATSTransport) BroadcastDelete(key string, rk resource.ResourceKind) {
 	fmt.Printf(msg)
 }
 
-func (s *NATSTransport) BroadcastSync(obj interface{}, rk resource.ResourceKind) {
-	stat, _ := s.PrettyJson(rk.GetStatus(obj))
+func (s *NATSTransport) BroadcastSync(key string, obj interface{}, rk resource.ResourceKind) {
+	//stat, _ := s.PrettyJson(rk.GetStatus(obj))
 
-	msg := fmt.Sprintf("NATS Sync/Add/Update for Resource (%s) %s\n%v\n", rk.GetKind(), rk.GetName(obj), stat)
+	//msg := fmt.Sprintf("NATS Sync/Add/Update for Resource (%s) %s\n%v\n", rk.GetKind(), rk.GetName(obj), stat)
+	msg := s.Signal.SignalSync(key, obj, rk)
 	s.Conn.Publish("kelemetry/beacon", []byte(msg))
 	s.Conn.Flush()
 

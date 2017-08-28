@@ -24,7 +24,7 @@ import (
 type Transport interface {
 	Initialize() error
 	BroadcastDelete(key string, rk resource.ResourceKind)
-	BroadcastSync(obj interface{}, rk resource.ResourceKind)
+	BroadcastSync(key string, obj interface{}, rk resource.ResourceKind)
 	Close()
 	SetSignal(signal.SignalInterface)
 }

@@ -149,7 +149,7 @@ func (c *Controller) SyncToStdout(key string) error {
 	} else {
 		// Note that you also have to check the uid if you have a local controlled resource, which
 		// is dependent on the actual instance, to detect that a Pod was recreated with the same name
-		c.t.BroadcastSync(obj, c.rk)
+		c.t.BroadcastSync(key, obj, c.rk)
 		// stat, _ := c.PrettyJson(c.rk.GetStatus(obj))
 		// fmt.Printf("Sync/Add/Update for Pod %s\n%v\n", c.rk.GetName(obj), stat)
 	}
