@@ -8,12 +8,23 @@ A beacon is a combination of a Kubernetes resource, a Transport method and a Sig
 
 For instance you can set up a beacon to listen to changes to Pod resoures and then using the Stdout transport, send a signal that is just the name.
 
-| K8s Resources | Transports | Signals |
-|---|---|---|
-| Deployments | Stdout | Status |
-| Ingresses | NATS | |
-| Pods | | |
-| Services | | |
+| K8s Resources | Keywords |
+|---|---|
+| Deployments | de, deploy, deployment, deployments |
+| Ingresses | in, ing, ingresse, ingresses |
+| Pods | po, pod, pods|
+| Services | se, svc, service, services|
+
+-transport=<keyword>
+| Transports | Keywords |
+|---|---|
+| Stdout | stdout |
+| NATS | nats |
+
+-signal
+| Signal | Keywords |
+|---|---|
+| Status | status |
 
 ## Running
 
@@ -21,14 +32,6 @@ For instance you can set up a beacon to listen to changes to Pod resoures and th
 # if outside of the cluster
 go run *.go -kubeconfig=$HOME/.kube/config -logtostderr=true -kind=pods -transport=nats -namespace=default
 ```
-
-## Current Status
-
-
-### Supported Transports
--transport=
-
-stdout
 
 ## Roadmap
    1. Add Complete set of Resources
