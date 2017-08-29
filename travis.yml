@@ -1,0 +1,22 @@
+language: go
+sudo: false
+go:
+  - 1.8
+
+# services:
+#   - redis-server
+
+# env:
+#   global:
+#     - secure: "xxxxx"
+
+script:
+  - go fmt ./api/... .
+  # - go vet $(go list ./... | grep -v /vendor/)
+  - go test ./api/... .
+before_install:
+  - go get github.com/tools/godep
+
+branches:
+  only:
+    - master
