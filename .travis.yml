@@ -1,6 +1,6 @@
 language: go
 
-go_import_path: k8s.io/client-go
+# go_import_path: k8s.io/client-go
 
 go:
   - 1.8.1
