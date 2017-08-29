@@ -1,23 +1,8 @@
-osx_image: xcode7.3
 language: go
-sudo: false
+
+go_import_path: k8s.io/client-go
+
 go:
-  - 1.8
+  - 1.8.1
 
-# services:
-#   - redis-server
-
-# env:
-#   global:
-#     - secure: "xxxxx"
-
-script:
-  - go fmt ./api/... .
-  # - go vet $(go list ./... | grep -v /vendor/)
-  - go test ./api/... .
-before_install:
-  - go get github.com/tools/godep
-
-branches:
-  only:
-    - master
+script: go build ./...
